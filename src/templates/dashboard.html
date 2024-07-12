@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}DASHBOARD ADMIN{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row ">
+        <!-- Panel de cantidad de productos -->
+        <div class="col-lg-5 col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold ">Cantidad de Productos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="cantidadProductosChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de productos devueltos -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Productos Devueltos</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for producto, motivo in productos_devueltos %}
+                            <li class="list-group-item">
+                                <span class="font-weight-bold">{{ producto }}</span>: {{ motivo }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de ventas en fecha específica -->
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Ventas en Fecha Específica</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Total Ventas: {{ total_ventas }}</p>
+                    <p>Fecha: {{ fecha_especifica }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de productos más vendidos -->
+        <div class="col-lg-5 col-md-6 mb-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Productos Más Vendidos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="productosMasVendidosChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Datos para la gráfica de cantidad de productos
+    var nombresProductos = {{ nombres_productos|tojson }};
+    var cantidadesIniciales = {{ cantidades_iniciales|tojson }};
+
+    var cantidadProductosChart = document.getElementById('cantidadProductosChart').getContext('2d');
+    var chartCantidadProductos = new Chart(cantidadProductosChart, {
+        type: 'bar',
+        data: {
+            labels: nombresProductos,
+            datasets: [{
+                label: 'Cantidad Inicial',
+                data: cantidadesIniciales,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Datos para la gráfica de productos más vendidos
+    var productosMasVendidos = {{ productos_mas_vendidos|tojson }};
+    var nombresProductosMasVendidos = productosMasVendidos.map(item => item[0]);
+    var cantidadesVendidas = productosMasVendidos.map(item => item[1]);
+
+    var productosMasVendidosChart = document.getElementById('productosMasVendidosChart').getContext('2d');
+    var chartProductosMasVendidos = new Chart(productosMasVendidosChart, {
+        type: 'bar',
+        data: {
+            labels: nombresProductosMasVendidos,
+            datasets: [{
+                label: 'Cantidad Vendida',
+                data: cantidadesVendidas,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

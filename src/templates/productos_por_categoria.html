@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos por Categoría</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Productos por Categoría</h1>
+    <div>
+        <canvas id="barChart"></canvas>
+    </div>
+    <div>
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div>
+        <canvas id="lineChart"></canvas>
+    </div>
+    <div>
+        <canvas id="doughnutChart"></canvas>
+    </div>
+
+    <script>
+        // Datos para los gráficos
+        const categorias = {{ categorias|tojson }};
+        const cantidades = {{ cantidades|tojson }};
+
+        // Configuración del gráfico de barras
+        const barConfig = {
+            type: 'bar',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Cantidad de productos',
+                    data: cantidades,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Configuración del gráfico de pastel
+        const pieConfig = {
+            type: 'pie',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Cantidad de productos',
+                    data: cantidades,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        };
+
+        // Configuración del gráfico de líneas
+        const lineConfig = {
+            type: 'line',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Cantidad de productos',
+                    data: cantidades,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Configuración del gráfico de donut
+        const doughnutConfig = {
+            type: 'doughnut',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Cantidad de productos',
+                    data: cantidades,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        };
+
+        // Crear los gráficos
+        new Chart(document.getElementById('barChart'), barConfig);
+        new Chart(document.getElementById('pieChart'), pieConfig);
+        new Chart(document.getElementById('lineChart'), lineConfig);
+        new Chart(document.getElementById('doughnutChart'), doughnutConfig);
+    </script>
+</body>
+</html>

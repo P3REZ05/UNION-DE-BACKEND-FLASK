@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Dashboard de Ventas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4 mb-4">Dashboard de Ventas</h1>
+
+    <!-- Trabajadores con más ventas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Trabajadores con Más Ventas</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trabajadoresVentasChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos con bajo stock -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Productos con Bajo Stock</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="productosBajoStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos con precios más bajos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="font-weight-bold mb-0">Productos con Precios Más Bajos</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos_precios %}
+                                <tr>
+                                    <td>{{ producto.nombre }}</td>
+                                    <td>{{ producto.precio }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Datos para el gráfico de trabajadores con más ventas
+    const trabajadores = {{ trabajadores | tojson }};
+    const trabajadoresLabels = trabajadores.map(t => t.nombre);
+    const trabajadoresData = trabajadores.map(t => t.ventas);
+
+    const trabajadoresVentasChartCtx = document.getElementById('trabajadoresVentasChart').getContext('2d');
+    const trabajadoresVentasChart = new Chart(trabajadoresVentasChartCtx, {
+        type: 'bar',
+        data: {
+            labels: trabajadoresLabels,
+            datasets: [{
+                label: 'Ventas',
+                data: trabajadoresData,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Datos para el gráfico de productos con bajo stock
+    const productos = {{ productos | tojson }};
+    const productosLabels = productos.map(p => p.nombre);
+    const productosData = productos.map(p => p.stock);
+
+    const productosBajoStockChartCtx = document.getElementById('productosBajoStockChart').getContext('2d');
+    const productosBajoStockChart = new Chart(productosBajoStockChartCtx, {
+        type: 'bar',
+        data: {
+            labels: productosLabels,
+            datasets: [{
+                label: 'Stock',
+                data: productosData,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
