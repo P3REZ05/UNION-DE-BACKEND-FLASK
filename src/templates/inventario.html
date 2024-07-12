@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between mb-3">
-        <h2>Inventario de Productos</h2>
         <div>
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#agregarProductoModal">
                 Agregar Producto
@@ -29,20 +28,26 @@
         <tbody>
             {% for producto in data %}
             <tr>
-                <td>{{ producto[0] }}</td>
-                <td>{{ producto[1] }}</td>
-                <td>{{ producto[2] }}</td>
-                <td>{{ producto[3] }}</td>
-                <td>{{ producto[4] }}</td>
-                <td>{{ producto[5] }}</td>
+                <td>{{ producto['ID_producto'] }}</td>
+                <td>{{ producto['nombre_producto'] }}</td>
+                <td>{{ producto['descripcion_producto'] }}</td>
+                <td>{{ producto['valor_producto'] }}</td>
+                <td>{{ producto['cantidad_inicial'] }}</td>
+                <td>
+                    {% for proveedor in proveedores %}
+                        {% if proveedor['ID_proveedor'] == producto['ID_proveedor'] %}
+                            {{ proveedor['Nombre_empresa'] }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
                 <td>
                     <div class="btn-group">
                         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Opciones
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editarProductoModal" data-id="{{ producto[0] }}">Editar</a>
-                            <a class="dropdown-item" href="{{ url_for('delete_producto', id=producto[0]) }}">Eliminar</a>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editarProductoModal{{ producto['ID_producto'] }}">Editar</a>
+                            <a class="dropdown-item" href="{{ url_for('delete_producto', id=producto['ID_producto']) }}">Eliminar</a>
                         </div>
                     </div>
                 </td>
@@ -56,33 +61,28 @@
 <div class="modal fade" id="agregarProductoModal" tabindex="-1" role="dialog" aria-labelledby="agregarProductoModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
+            
             <form action="{{ url_for('agregar_producto') }}" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="agregarProductoModalLabel">Agregar Producto</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="ID_producto">ID Producto</label>
                         <input type="text" class="form-control" name="ID_producto" required>
                     </div>
                     <div class="form-group">
-                        <label for="Nombre_producto">Nombre Producto</label>
-                        <input type="text" class="form-control" name="Nombre_producto" required>
+                        <label for="nombre_producto">Nombre Producto</label>
+                        <input type="text" class="form-control" name="nombre_producto" required>
                     </div>
                     <div class="form-group">
-                        <label for="Descripcion">Descripción</label>
-                        <input type="text" class="form-control" name="Descripcion" required>
+                        <label for="descripcion_producto">Descripción</label>
+                        <input type="text" class="form-control" name="descripcion_producto" required>
                     </div>
                     <div class="form-group">
                         <label for="valor_producto">Valor Producto</label>
                         <input type="text" class="form-control" name="valor_producto" required>
                     </div>
                     <div class="form-group">
-                        <label for="cantidad_inicial">Cantidad Inicial</label>
-                        <input type="text" class="form-control" name="cantidad_inicial" required>
+                        <label for="stock">Stock</label>
+                        <input type="text" class="form-control" name="stock" required>
                     </div>
                     <div class="form-group">
                         <label for="ID_proveedor">Proveedor</label>
@@ -92,12 +92,22 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="ID_categoria_producto">Categoría Producto</label>
+                        <select class="form-control" name="ID_categoria_producto" required>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria['ID_categoria_producto'] }}">{{ categoria['nombre_categoria'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Agregar Producto</button>
                 </div>
             </form>
+            
+            
         </div>
     </div>
 </div>
@@ -140,4 +150,61 @@
         </div>
     </div>
 </div>
+
+<!-- Modales para editar productos -->
+{% for producto in data %}
+<div class="modal fade" id="editarProductoModal{{ producto['ID_producto'] }}" tabindex="-1" role="dialog" aria-labelledby="editarProductoModalLabel{{ producto['ID_producto'] }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{{ url_for('editar_producto', id=producto['ID_producto']) }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarProductoModalLabel{{ producto['ID_producto'] }}">Editar Producto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="ID_producto">ID Producto</label>
+                        <input type="text" class="form-control" name="ID_producto" value="{{ producto['ID_producto'] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="Nombre_producto">Nombre Producto</label>
+                        <input type="text" class="form-control" name="Nombre_producto" value="{{ producto['nombre_producto'] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion_producto">Descripción</label>
+                        <input type="text" class="form-control" name="descripcion_producto" value="{{ producto['descripcion_producto'] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="valor_producto">Valor Producto</label>
+                        <input type="text" class="form-control" name="valor_producto" value="{{ producto['valor_producto'] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad_inicial">Cantidad Inicial</label>
+                        <input type="text" class="form-control" name="cantidad_inicial" value="{{ producto['cantidad_inicial'] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ID_proveedor">Proveedor</label>
+                        <select class="form-control" name="ID_proveedor" required>
+                            {% for proveedor in proveedores %}
+                            <option value="{{ proveedor['ID_proveedor'] }}" {% if producto['ID_proveedor'] == proveedor['ID_proveedor'] %} selected {% endif %}>{{ proveedor['Nombre_empresa'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock">Stock</label>
+                        <input type="text" class="form-control" name="stock" value="{{ producto['stock'] }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 {% endblock %}

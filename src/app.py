@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import os
 from datetime import date
 import mysql.connector
-import database as db 
+from database import get_db_cursor, db
 
 # Configuración
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
@@ -55,6 +55,12 @@ def login():
 # Ruta para la gestión de usuarios
 @app.route('/usuarios')
 def usuarios():
+    if 'ID_admin' not in session:
+        return redirect(url_for('index'))
+
+    cursor = db.db.cursor(dictionary=True)
+
+
     cursor = database.cursor()
     cursor.execute("SELECT * FROM usuarios")
     myresult = cursor.fetchall()
@@ -126,6 +132,12 @@ def edit(id):
 # Ruta para mostrar la página de proveedores
 @app.route('/proveedores')
 def proveedores():
+
+    if 'ID_admin' not in session:
+        return redirect(url_for('index'))
+
+    cursor = db.db.cursor(dictionary=True)
+
     cursor = database.cursor()
     cursor.execute("SELECT * FROM proveedores")
     myresult = cursor.fetchall()
@@ -203,12 +215,18 @@ def editar_proveedor(id):
     return redirect(url_for('proveedores'))
 
 # Ruta para mostrar la página de inventario
+# Ruta principal del inventario
+# Ruta principal del inventario
 @app.route('/inventario')
 def inventario():
-    cursor = database.cursor()
+    if 'id_usuario' not in session:
+        return redirect(url_for('index'))
+
+    cursor = get_db_cursor()
+
     cursor.execute("SELECT * FROM producto")
     productos = cursor.fetchall()
-    
+
     cursor.execute("SELECT * FROM proveedores")
     proveedores = cursor.fetchall()
 
@@ -222,7 +240,7 @@ def filtrar_productos():
     precio = request.form.get('precio')
     cantidad = request.form.get('cantidad')
 
-    cursor = database.cursor()
+    cursor = get_db_cursor()
 
     # Construir la consulta SQL base
     sql = "SELECT * FROM producto WHERE 1=1"
@@ -239,94 +257,87 @@ def filtrar_productos():
     productos_filtrados = cursor.fetchall()
     cursor.close()
 
-    # Renderizar la página de inventario con productos filtrados
-    cursor = database.cursor()
+    # Obtener lista de proveedores para mostrar en la página
+    cursor = get_db_cursor()
     cursor.execute("SELECT * FROM proveedores")
     proveedores = cursor.fetchall()
     cursor.close()
     
     return render_template('inventario.html', data=productos_filtrados, proveedores=proveedores)
 
-# Ruta para agregar productos
+# Función para agregar productos
 @app.route('/agregar_producto', methods=['POST'])
 def agregar_producto():
     ID_producto = request.form['ID_producto']
-    Nombre_producto = request.form['Nombre_producto']
-    Descripcion = request.form['Descripcion']
+    nombre_producto = request.form['nombre_producto']
+    descripcion_producto = request.form['descripcion_producto']
     valor_producto = request.form['valor_producto']
-    cantidad_inicial = request.form['cantidad_inicial']
+    stock = request.form['stock']
     ID_proveedor = request.form['ID_proveedor']
+    ID_categoria_producto = request.form['ID_categoria_producto']
 
-    if ID_producto and Nombre_producto and Descripcion and valor_producto and cantidad_inicial and ID_proveedor:
+    if ID_producto and nombre_producto and descripcion_producto and valor_producto and stock and ID_proveedor and ID_categoria_producto:
         try:
-            cursor = database.cursor()
-            sql = "INSERT INTO producto (ID_producto, Nombre_producto, Descripcion, valor_producto, cantidad_inicial, ID_proveedor) VALUES (%s, %s, %s, %s, %s, %s)"
-            data = (ID_producto, Nombre_producto, Descripcion, valor_producto, cantidad_inicial, ID_proveedor)
+            cursor = get_db_cursor()
+            sql = "INSERT INTO producto (ID_producto, nombre_producto, descripcion_producto, valor_producto, stock, ID_proveedor, ID_categoria_producto) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            data = (ID_producto, nombre_producto, descripcion_producto, valor_producto, stock, ID_proveedor, ID_categoria_producto)
             cursor.execute(sql, data)
-            database.commit()
-        except mysql.connector.errors.IntegrityError:
-            flash('Error: El ID de producto ya existe.', 'error')
-        except mysql.connector.errors.DataError:
-            flash('Error: Uno de los valores es demasiado largo.', 'error')
+            db.commit()
+            cursor.close()
+            flash('Producto agregado correctamente', 'success')
+        except mysql.connector.Error as err:
+            flash(f'Error al agregar producto: {err}', 'error')
 
     return redirect(url_for('inventario'))
+
 
 # Ruta para eliminar productos
 @app.route('/delete_producto/<string:id>')
 def delete_producto(id):
-    cursor = database.cursor()
+    cursor = get_db_cursor()
     sql = "DELETE FROM producto WHERE ID_producto = %s"
     data = (id,)
     cursor.execute(sql, data)
-    database.commit()
+    db.commit()
+    cursor.close()
+    flash('Producto eliminado correctamente', 'success')
     return redirect(url_for('inventario'))
 
 # Ruta para editar productos 
 @app.route('/editar_producto/<string:id>', methods=['POST'])
-def editar_productos(id):
+def editar_producto_id(id):
     ID_producto = request.form['ID_producto']
-    Nombre_producto = request.form['Nombre_producto']
-    Descripcion = request.form['Descripcion']
+    nombre_producto = request.form['Nombre_producto']
+    descripcion_producto = request.form['Descripcion']
     valor_producto = request.form['valor_producto']
     cantidad_inicial = request.form['cantidad_inicial']
     ID_proveedor = request.form['ID_proveedor']
 
-    if ID_producto and Nombre_producto and Descripcion and valor_producto and cantidad_inicial and ID_proveedor:
+    if ID_producto and nombre_producto and descripcion_producto and valor_producto and cantidad_inicial and ID_proveedor:
         try:
-            cursor = database.cursor()
-            sql = "UPDATE producto SET ID_producto = %s, Nombre_producto = %s, Descripcion = %s, valor_producto = %s, cantidad_inicial = %s, ID_proveedor = %s WHERE ID_producto = %s"
-            data = (ID_producto, Nombre_producto, Descripcion, valor_producto, cantidad_inicial, ID_proveedor, id)
+            cursor = get_db_cursor()
+            sql = "UPDATE producto SET ID_producto = %s, nombre_producto = %s, descripcion_producto = %s, valor_producto = %s, cantidad_inicial = %s, ID_proveedor = %s WHERE ID_producto = %s"
+            data = (ID_producto, nombre_producto, descripcion_producto, valor_producto, cantidad_inicial, ID_proveedor, id)
             cursor.execute(sql, data)
-            database.commit()
-        except mysql.connector.errors.IntegrityError:
-            flash('Error: El ID de producto ya existe.', 'error')
-        except mysql.connector.errors.DataError:
-            flash('Error: Uno de los valores es demasiado largo.', 'error')
+            db.commit()
+            cursor.close()
+            flash('Producto actualizado correctamente', 'success')
+        except mysql.connector.Error as err:
+            flash(f'Error al actualizar producto: {err}', 'error')
 
     return redirect(url_for('inventario'))
-
-
-@app.route('/productos_por_categoria')
-def productos_por_categoria():
-    cursor = database.cursor()
-    cursor.execute('''
-        SELECT cp.nombre_categoria, COUNT(p.ID_producto) as cantidad 
-        FROM producto p 
-        JOIN categoria_producto cp ON p.ID_categoria_producto = cp.ID_categoria_producto 
-        GROUP BY cp.nombre_categoria
-    ''')
-    data = cursor.fetchall()
-    cursor.close()
-
-    categorias = [item[0] for item in data]
-    cantidades = [item[1] for item in data]
-
-    return render_template('productos_por_categoria.html', categorias=categorias, cantidades=cantidades)
 
 
 # Ruta para el dashboard
 @app.route('/dashboard')
 def dashboard():
+
+    if 'ID_admin' not in session:
+        return redirect(url_for('index'))
+
+    cursor = db.db.cursor(dictionary=True)
+
+
     # Consulta para obtener la cantidad de productos
     cursor = database.cursor()
     cursor.execute('SELECT Nombre_producto, cantidad_inicial FROM producto ORDER BY cantidad_inicial DESC LIMIT 5')
@@ -378,6 +389,14 @@ def dashboard():
 # Ruta para el dashboard de ventas
 @app.route('/dashboard_ventas')
 def dashboard_ventas():
+
+
+    if 'ID_admin' not in session:
+        return redirect(url_for('index'))
+
+    cursor = db.db.cursor(dictionary=True)
+
+
     cursor = database.cursor()
 
     # Consulta para obtener los trabajadores con más ventas
@@ -671,6 +690,11 @@ def buscar_productos(nombre_producto):
 
 @app.route('/compras', methods=['GET', 'POST'])
 def compras():
+    if 'id_usuario' not in session:
+        return redirect(url_for('index'))
+
+    cursor = db.db.cursor(dictionary=True)
+
     if request.method == 'POST':
         if 'proveedor_id' in request.form:
             proveedor_id = request.form['proveedor_id']
